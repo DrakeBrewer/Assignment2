@@ -121,40 +121,23 @@ struct flaginfo local_modes[] = {
 void showBaud(speed_t);
 void printModes(int, struct flaginfo []);
 void printCntrlChars(cc_t *, struct charinfo []);
+void printStty(struct termios info, struct winsize winfo);
 
 
 int main (int argc, char **argv)
 {
     struct termios info;
     struct winsize w;
-
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    					
+	
 	if ( tcgetattr( 0 , &info ) == -1 ) {
 		perror( "cannot get params about stdin");
 		exit(1);
 	}
-    // terminal info
-	showBaud (cfgetospeed(&info));
-    printf("rows %d; ", w.ws_row);
-    printf("columns %d; ", w.ws_col);
-    printf("line = %d; ", info.c_line);
-    printf("\n");
 
-    // control chars
-    printCntrlChars(info.c_cc, control_chars);
-
-    // control modes
-    printModes(info.c_cflag, control_modes);
-
-    // input modes
-    printModes(info.c_cflag, input_modes);
-
-    // output modes
-    printModes(info.c_cflag, output_modes);
-
-    // local modes
-    printModes(info.c_cflag, local_modes);
+    if (argc == 1) {
+        printStty(info, w);
+    }
+    
 }
 
 void showBaud(speed_t speed)
@@ -186,6 +169,32 @@ void showBaud(speed_t speed)
         default:      printf("Unknown "); break;
     }
     printf("baud; ");
+}
+
+void printStty(struct termios stty_info, struct winsize w_info)
+{
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w_info);
+    // terminal info
+	showBaud (cfgetospeed(&stty_info));
+    printf("rows %d; ", w_info.ws_row);
+    printf("columns %d; ", w_info.ws_col);
+    printf("line = %d; ", stty_info.c_line);
+    printf("\n");
+
+    // control chars
+    printCntrlChars(stty_info.c_cc, control_chars);
+
+    // control modes
+    printModes(stty_info.c_cflag, control_modes);
+
+    // input modes
+    printModes(stty_info.c_cflag, input_modes);
+
+    // output modes
+    printModes(stty_info.c_cflag, output_modes);
+
+    // local modes
+    printModes(stty_info.c_cflag, local_modes);
 }
 
 void printModes(int value, struct flaginfo modes[])
