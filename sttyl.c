@@ -28,12 +28,102 @@
         isig icanon iexten echo echoe echok -echonl -noflsh -xcase -tostop -echoprt echoctl echoke -flusho -extproc
 */
 
+struct charinfo { cc_t value; char *name };
+struct charinfo control_chars[] = {
+    VINTR    , "intr", // intr
+    VQUIT    , "quit",
+    VERASE   , "erase", // erase
+    VKILL    , "kill", // kill
+    VEOF     , "eof",
+    VEOL     , "eol",
+    VEOL2    , "eol2",
+    VSWTC    , "swtch",
+    VSTART   , "start", //
+    VSTOP    , "stop", //
+    VSUSP    , "susp",
+    VREPRINT , "rprnt",
+    VWERASE  , "werase", //
+    VLNEXT   , "lnext",
+    VDISCARD , "discard",
+    VMIN     , "min", //
+    VTIME    , "time", // 
+    0        , NULL
+};
+
+struct flaginfo { tcflag_t value; char *name; };
+struct flaginfo control_modes[] = {
+    PARENB  , "parenb",
+    PARODD  , "parodd",
+    // CMSPAR , "cmspar",
+    CS8     , "cs8",
+    HUPCL   , "hupcl",
+    CSTOPB  , "cstopb",
+    CREAD   , "cread",
+    CLOCAL  , "clocal",
+    // CRTSCTS , "crtscts",
+    0       , NULL
+};
+
+struct flaginfo input_modes[] = {
+    IGNBRK , "ignbrk",
+    BRKINT , "brkint",
+    IGNPAR , "ignpar",
+    PARMRK , "parmrk",
+    INPCK  , "inpck",
+    ISTRIP , "istrip",
+    INLCR  , "inlcr",
+    IGNCR  , "igncr",
+    ICRNL  , "icrnl",
+    IXON   , "ixon",
+    IXANY  , "ixany",
+    IXOFF  , "ixoff",
+    0	   , NULL 
+};
+
+struct flaginfo output_modes[] = {
+    OPOST   , "opost",
+    OLCUC   , "olcuc",
+    OCRNL   , "ocrnl",
+    ONLCR   , "onlcr",
+    ONOCR   , "onocr",
+    ONLRET  , "onlret",
+    IGNCR   , "igncr",
+    ICRNL   , "icrnl",
+    IXON    , "ixon",
+    IXOFF   , "ixoff",
+    IUCLC   , "iuclc",
+    IXANY   , "ixany",
+    IMAXBEL , "imaxbel",
+    IUTF8   , "iutf8",
+    0       , NULL
+};
+
+struct flaginfo local_modes[] = {
+    ISIG    , "isig",
+    ICANON  , "icanon",
+    IEXTEN  , "iexten",
+    ECHO    , "echo",
+    ECHOE   , "echoe",
+    ECHOK   , "echok",
+    ECHONL  , "echonl",
+    NOFLSH  , "noflsh",
+    // XCASE  , "xcase",
+    TOSTOP  , "tostop",
+    // ECHOPRT , "echoprt",
+    // ECHOCTL , "echoctl",
+    // ECHOKE  , "echoke",
+    // FLUSHO  , "flusho",
+    // EXTPROC , "extproc",
+    0	   , NULL 
+};
+
 void showBaud(speed_t);
 void getAttr(int);
 void getControlChars(cc_t, char[20]);
 void printInputMode(struct termios info, tcflag_t);
 void setAttr();
-char* lowerCase(char*);
+void printModes(int, struct flaginfo []);
+void printCntrlChars(cc_t *, struct charinfo []);
 
 
 int main (int argc, int **argv)
@@ -52,34 +142,22 @@ int main (int argc, int **argv)
     printf("rows %d; ", w.ws_row);
     printf("columns %d; ", w.ws_col);
     printf("line = %d; ", info.c_line);
+    printf("\n");
 
     // control chars
-    getControlChars(info.c_cc[VINTR], "intr"); // intr
-    getControlChars(info.c_cc[VQUIT], "quit");
-    getControlChars(info.c_cc[VERASE], "erase"); // erase
-    getControlChars(info.c_cc[VKILL], "kill"); // kill
-    getControlChars(info.c_cc[VEOF], "eof");
-    getControlChars(info.c_cc[VEOL], "eol");
-    getControlChars(info.c_cc[VEOL2], "eol2");
-    getControlChars(info.c_cc[VSWTC], "swtch");
-    getControlChars(info.c_cc[VSTART], "start"); //
-    getControlChars(info.c_cc[VSTOP], "stop"); //
-    getControlChars(info.c_cc[VSUSP], "susp");
-    getControlChars(info.c_cc[VREPRINT], "rprnt");
-    getControlChars(info.c_cc[VWERASE], "werase"); //
-    getControlChars(info.c_cc[VLNEXT], "lnext");
-    getControlChars(info.c_cc[VDISCARD], "discard");
-    getControlChars(info.c_cc[VMIN], "min"); //
-    getControlChars(info.c_cc[VTIME], "time"); //
+    printCntrlChars(info.c_cc, control_chars);
+
+    // control modes
+    printModes(info.c_cflag, control_modes);
 
     // input modes
-    printInputMode(info, IGNBRK);
+    printModes(info.c_cflag, input_modes);
 
     // output modes
-
+    printModes(info.c_cflag, output_modes);
 
     // local modes
-
+    printModes(info.c_cflag, local_modes);
 }
 
 void showBaud(speed_t speed)
@@ -113,87 +191,27 @@ void showBaud(speed_t speed)
     printf("baud; ");
 }
 
-void getControlChars(cc_t cc, char name[20])
+void printModes(int value, struct flaginfo modes[])
 {
-    if (cc < 2) {
-        printf("%s = %d; ", name, cc);
-    } else if (cc < 32)
-        printf("%s = ^%c; ", name, (char)cc+64);
-        // printf("%s = ^%c(%d); ", name, (char)cc+64, cc); // For testing
-    else {
-        printf("%s = <undef>; ", name);
+    for (int i = 0; modes[i].value; i++) {
+        if (value & modes[i].value) {
+            printf("%s ", modes[i].name);
+        } else {
+            printf("-%s ", modes[i].name);
+        }
     }
+    printf("\n");
 }
 
-void printInputMode(struct termios info, tcflag_t inFlag) {
-    info.c_iflag & inFlag ? printf("%s ") : printf("-%s ", getName(inFlag));
+void printCntrlChars(cc_t *val, struct charinfo chars[])
+{
+    // printf("%s = ^%c", chars[0].name, (char)val[chars[0].value]+64);
+    for (int i = 0; chars[i].name != NULL; i++) {
+        if (val[chars[i].value] < 2) {
+            printf("%s = %d; ", chars[i].name, val[chars[i].value]);
+        } else {
+            printf("%s = ^%c; ", chars[i].name, (char)val[chars[i].value]+64);
+        }
+    }
+    printf("\n");
 }
-
-struct charinfo { cc_t value; char *name };
-
-struct flaginfo { tcflag_t value; char	*name; };
-struct flaginfo control_modes[] = {
-    PARENB  , "parenb",
-    PARODD  , "parodd",
-    // CMSPAR , "cmspar",
-    CS8     , "cs8",
-    HUPCL   , "hupcl",
-    CSTOPB  , "cstopb",
-    CREAD   , "cread",
-    CLOCAL  , "clocal",
-    // CRTSCTS , "crtscts",
-    0       , NULL
-};
-
-struct flaginfo input_mode[] = {
-    IGNBRK , "ignbrk",
-    BRKINT , "brkint",
-    IGNPAR , "ignpar",
-    PARMRK , "parmrk",
-    INPCK  , "inpck",
-    ISTRIP , "istrip",
-    INLCR  , "inlcr",
-    IGNCR  , "igncr",
-    ICRNL  , "icrnl",
-    IXON   , "ixon",
-    IXANY  , "ixany",
-    IXOFF  , "ixoff",
-    0	   , NULL 
-};
-
-struct flaginfo output_mode[] = {
-    OPOST   , "opost",
-    OLCUC   , "olcuc",
-    OCRNL   , "ocrnl",
-    ONLCR   , "onlcr",
-    ONOCR   , "onocr",
-    ONLRET  , "onlret",
-    IGNCR   , "igncr",
-    ICRNL   , "icrnl",
-    IXON    , "ixon",
-    IXOFF   , "ixoff",
-    IUCLC   , "iuclc",
-    IXANY   , "ixany",
-    IMAXBEL , "imaxbel",
-    IUTF8   , "iutf8",
-    0       , NULL
-};
-
-struct flaginfo local_mode[] = {
-    ISIG    , "isig",
-    ICANON  , "icanon",
-    IEXTEN  , "iexten",
-    ECHO    , "echo",
-    ECHOE   , "echoe",
-    ECHOK   , "echok",
-    ECHONL  , "echonl",
-    NOFLSH  , "noflsh",
-    // XCASE  , "xcase",
-    TOSTOP  , "tostop",
-    // ECHOPRT , "echoprt",
-    // ECHOCTL , "echoctl",
-    // ECHOKE  , "echoke",
-    // FLUSHO  , "flusho",
-    // EXTPROC , "extproc",
-    0	   , NULL 
-};
