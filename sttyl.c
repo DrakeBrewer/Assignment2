@@ -136,8 +136,15 @@ int main (int argc, char **argv)
 
     if (argc == 1) {
         printStty(info, w);
+    } else {
+        for (int i; i < argc; i++) {
+            if (argv[i][0] == '-')
+                printf("%s :)\n", argv[i]);
+            else
+                printf("%s\n", argv[i]);
+        }
     }
-    
+    return 0;
 }
 
 void showBaud(speed_t speed)
