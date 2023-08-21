@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -28,105 +29,101 @@
         isig icanon iexten echo echoe echok -echonl -noflsh -xcase -tostop -echoprt echoctl echoke -flusho -extproc
 */
 
-struct charinfo { cc_t value; char *name };
+struct charinfo { cc_t value; char *name; };
 struct charinfo control_chars[] = {
-    VINTR    , "intr", // intr
-    VQUIT    , "quit",
-    VERASE   , "erase", // erase
-    VKILL    , "kill", // kill
-    VEOF     , "eof",
-    VEOL     , "eol",
-    VEOL2    , "eol2",
-    VSWTC    , "swtch",
-    VSTART   , "start", //
-    VSTOP    , "stop", //
-    VSUSP    , "susp",
-    VREPRINT , "rprnt",
-    VWERASE  , "werase", //
-    VLNEXT   , "lnext",
-    VDISCARD , "discard",
-    VMIN     , "min", //
-    VTIME    , "time", // 
-    0        , NULL
+    {VINTR    , "intr"   }, // intr
+    {VQUIT    , "quit"   },
+    {VERASE   , "erase"  }, // erase
+    {VKILL    , "kill"   }, // kill
+    {VEOF     , "eof"    },
+    {VEOL     , "eol"    },
+    {VEOL2    , "eol2"   },
+    {VSWTC    , "swtch"  },
+    {VSTART   , "start"  },
+    {VSTOP    , "stop"   },
+    {VSUSP    , "susp"   },
+    {VREPRINT , "rprnt"  },
+    {VWERASE  , "werase" },
+    {VLNEXT   , "lnext"  },
+    {VDISCARD , "discard"},
+    {VMIN     , "min"    },
+    {VTIME    , "time"   },
+    {0        , NULL     }
 };
 
 struct flaginfo { tcflag_t value; char *name; };
 struct flaginfo control_modes[] = {
-    PARENB  , "parenb",
-    PARODD  , "parodd",
-    // CMSPAR , "cmspar",
-    CS8     , "cs8",
-    HUPCL   , "hupcl",
-    CSTOPB  , "cstopb",
-    CREAD   , "cread",
-    CLOCAL  , "clocal",
-    // CRTSCTS , "crtscts",
-    0       , NULL
+    {PARENB  , "parenb" },
+    {PARODD  , "parodd" },
+    // {CMSPAR , "cmspar"  },
+    {CS8     , "cs8"    },
+    {HUPCL   , "hupcl"  },
+    {CSTOPB  , "cstopb" },
+    {CREAD   , "cread"  },
+    {CLOCAL  , "clocal" },
+    // {CRTSCTS , "crtscts"},
+    {0       , NULL     }
 };
 
 struct flaginfo input_modes[] = {
-    IGNBRK , "ignbrk",
-    BRKINT , "brkint",
-    IGNPAR , "ignpar",
-    PARMRK , "parmrk",
-    INPCK  , "inpck",
-    ISTRIP , "istrip",
-    INLCR  , "inlcr",
-    IGNCR  , "igncr",
-    ICRNL  , "icrnl",
-    IXON   , "ixon",
-    IXANY  , "ixany",
-    IXOFF  , "ixoff",
-    0	   , NULL 
+    {IGNBRK , "ignbrk"},
+    {BRKINT , "brkint"},
+    {IGNPAR , "ignpar"},
+    {PARMRK , "parmrk"},
+    {INPCK  , "inpck" },
+    {ISTRIP , "istrip"},
+    {INLCR  , "inlcr" },
+    {IGNCR  , "igncr" },
+    {ICRNL  , "icrnl" },
+    {IXON   , "ixon"  },
+    {IXANY  , "ixany" },
+    {IXOFF  , "ixoff" },
+    {0	   , NULL     }
 };
 
 struct flaginfo output_modes[] = {
-    OPOST   , "opost",
-    OLCUC   , "olcuc",
-    OCRNL   , "ocrnl",
-    ONLCR   , "onlcr",
-    ONOCR   , "onocr",
-    ONLRET  , "onlret",
-    IGNCR   , "igncr",
-    ICRNL   , "icrnl",
-    IXON    , "ixon",
-    IXOFF   , "ixoff",
-    IUCLC   , "iuclc",
-    IXANY   , "ixany",
-    IMAXBEL , "imaxbel",
-    IUTF8   , "iutf8",
-    0       , NULL
+    {OPOST   , "opost"  },
+    {OLCUC   , "olcuc"  },
+    {OCRNL   , "ocrnl"  },
+    {ONLCR   , "onlcr"  },
+    {ONOCR   , "onocr"  },
+    {ONLRET  , "onlret" },
+    {IGNCR   , "igncr"  },
+    {ICRNL   , "icrnl"  },
+    {IXON    , "ixon"   },
+    {IXOFF   , "ixoff"  },
+    {IUCLC   , "iuclc"  },
+    {IXANY   , "ixany"  },
+    {IMAXBEL , "imaxbel"},
+    {IUTF8   , "iutf8"  },
+    {0       , NULL     }
 };
 
 struct flaginfo local_modes[] = {
-    ISIG    , "isig",
-    ICANON  , "icanon",
-    IEXTEN  , "iexten",
-    ECHO    , "echo",
-    ECHOE   , "echoe",
-    ECHOK   , "echok",
-    ECHONL  , "echonl",
-    NOFLSH  , "noflsh",
-    // XCASE  , "xcase",
-    TOSTOP  , "tostop",
-    // ECHOPRT , "echoprt",
-    // ECHOCTL , "echoctl",
-    // ECHOKE  , "echoke",
-    // FLUSHO  , "flusho",
-    // EXTPROC , "extproc",
-    0	   , NULL 
+    {ISIG    , "isig"   },
+    {ICANON  , "icanon" },
+    {IEXTEN  , "iexten" },
+    {ECHO    , "echo"   },
+    {ECHOE   , "echoe"  },
+    {ECHOK   , "echok"  },
+    {ECHONL  , "echonl" },
+    {NOFLSH  , "noflsh" },
+    // {XCASE  , "xcase"   },
+    {TOSTOP  , "tostop" },
+    // {ECHOPRT , "echoprt"},
+    // {ECHOCTL , "echoctl"},
+    // {ECHOKE  , "echoke" },
+    // {FLUSHO  , "flusho" },
+    // {EXTPROC , "extproc"},
+    {0	   , NULL       }
 };
 
 void showBaud(speed_t);
-void getAttr(int);
-void getControlChars(cc_t, char[20]);
-void printInputMode(struct termios info, tcflag_t);
-void setAttr();
 void printModes(int, struct flaginfo []);
 void printCntrlChars(cc_t *, struct charinfo []);
 
 
-int main (int argc, int **argv)
+int main (int argc, char **argv)
 {
     struct termios info;
     struct winsize w;
@@ -192,6 +189,9 @@ void showBaud(speed_t speed)
 }
 
 void printModes(int value, struct flaginfo modes[])
+/*
+    print flogs for the targeted mode and struct
+*/
 {
     for (int i = 0; modes[i].value; i++) {
         if (value & modes[i].value) {
@@ -204,6 +204,9 @@ void printModes(int value, struct flaginfo modes[])
 }
 
 void printCntrlChars(cc_t *val, struct charinfo chars[])
+/*
+    print flogs for the targeted chars and struct
+*/
 {
     // printf("%s = ^%c", chars[0].name, (char)val[chars[0].value]+64);
     for (int i = 0; chars[i].name != NULL; i++) {
