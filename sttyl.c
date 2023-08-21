@@ -167,11 +167,20 @@ struct flaginfo output_flags[] = {
 };
 
 struct flaginfo local_flags[] = {
-    ISIG   , "isig",
-    ICANON , "icanon",
-    /* _XCASE	,	"Canonical upper/lower appearance", */
-    ECHO   , "echo",
-    ECHOE  , "echoe",
-    ECHOK  , "echok",
+    ISIG    , "isig",
+    ICANON  , "icanon",
+    IEXTEN  , "iexten",
+    ECHO    , "echo",
+    ECHOE   , "echoe",
+    ECHOK   , "echok",
+    ECHONL  , "echonl",
+    NOFLSH  , "noflsh",
+    // XCASE  , "xcase",
+    TOSTOP  , "tostop",
+    // ECHOPRT , "echoprt",
+    // ECHOCTL , "echoctl",
+    // ECHOKE  , "echoke",
+    // FLUSHO  , "flusho",
+    // EXTPROC , "extproc",
     0	   , NULL 
 };
