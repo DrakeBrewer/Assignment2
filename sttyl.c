@@ -129,29 +129,49 @@ void printInputMode(struct termios info, tcflag_t inFlag) {
     info.c_iflag & inFlag ? printf("%s ") : printf("-%s ", getName(inFlag));
 }
 
+struct charinfo { cc_t fl_value; char *fl_name };
 
 struct flaginfo { tcflag_t fl_value; char	*fl_name; };
 struct flaginfo input_flags[] = {
+    IGNBRK , "ignbrk",
+    BRKINT , "brkint",
+    IGNPAR , "ignpar",
+    PARMRK , "parmrk",
+    INPCK  , "inpck",
+    ISTRIP , "istrip",
+    INLCR  , "inlcr",
+    IGNCR  , "igncr",
+    ICRNL  , "icrnl",
+    IXON   , "ixon",
+    /* _IXANY  ,	"enable any char to restart output",	*/
+    IXOFF  , "ixoff",
+    0	   , NULL 
+};
 
-		IGNBRK	,	"ignbrk",
-		BRKINT	,	"brkint",
-		IGNPAR	,	"ignpar",
-		PARMRK	,	"parmrk",
-		INPCK	,	"inpck",
-		ISTRIP	,	"istrip",
-		INLCR	,	"inlcr",
-		IGNCR	,	"igncr",
-		ICRNL	,	"icrnl",
-		IXON	,	"ixon",
-		/* _IXANY  ,	"enable any char to restart output",	*/
-		IXOFF   ,	"ixoff",
-		0	,	NULL };
+struct flaginfo output_flags[] = {
+    OPOST   , "opost",
+    OLCUC   , "olcuc",
+    OCRNL   , "ocrnl",
+    ONLCR   , "onlcr",
+    ONOCR   , "onocr",
+    ONLRET  , "onlret",
+    IGNCR   , "igncr",
+    ICRNL   , "icrnl",
+    IXON    , "ixon",
+    IXOFF   , "ixoff",
+    IUCLC   , "iuclc",
+    IXANY   , "ixany",
+    IMAXBEL , "imaxbel",
+    IUTF8   , "iutf8",
+    0       , NULL
+};
 
 struct flaginfo local_flags[] = {
-		ISIG	,	"isig",
-		ICANON	,	"icanon",
-		/* _XCASE	,	"Canonical upper/lower appearance", */
-		ECHO	,	"echo",
-		ECHOE	,	"echoe",
-		ECHOK	,	"echok",
-		0	,	NULL };
+    ISIG   , "isig",
+    ICANON , "icanon",
+    /* _XCASE	,	"Canonical upper/lower appearance", */
+    ECHO   , "echo",
+    ECHOE  , "echoe",
+    ECHOK  , "echok",
+    0	   , NULL 
+};
