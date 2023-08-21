@@ -221,8 +221,15 @@ void printCntrlChars(cc_t *val, struct charinfo chars[])
     for (int i = 0; chars[i].name != NULL; i++) {
         if (val[chars[i].value] < 2) {
             printf("%s = %d; ", chars[i].name, val[chars[i].value]);
-        } else {
-            printf("%s = ^%c; ", chars[i].name, (char)val[chars[i].value]+64);
+        } 
+        else if (val[chars[i].value] < 32) {
+            printf("%s = ^%c; ", chars[i].name, (char)val[chars[i].value]+'@');
+        } 
+        else if (val[chars[i].value] > 32 && val[chars[i].value] < 255) {
+            printf("%s = ^?; ", chars[i].name);
+        } 
+        else {
+            printf("%s = <undef>; ", chars[i].name);
         }
     }
     printf("\n");
