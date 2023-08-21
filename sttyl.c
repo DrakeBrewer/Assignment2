@@ -122,8 +122,8 @@ void showBaud(speed_t);
 void printModes(int, struct flaginfo []);
 void printCntrlChars(cc_t *, struct charinfo []);
 void printStty(struct termios info, struct winsize winfo);
-void enableAttr(char*, struct termios info);
-void disableAttr(char*, struct termios info);
+void enableAttr(char*, struct termios *info);
+void disableAttr(char*, struct termios *info);
 
 int main (int argc, char **argv)
 {
@@ -138,13 +138,20 @@ int main (int argc, char **argv)
     if (argc == 1) {
         printStty(info, w);
     } else {
-        for (int i; i < argc; i++) {
-            if (argv[i][0] == '-')
-                disableAttr(argv[i], info);
-            else
-                enableAttr(argv[i], info);
+        for (int i = 1; i < argc; i++) {
+           if (argv[i][0] == '-') {
+                disableAttr(argv[i], &info);
+                
+            } else {
+                enableAttr(argv[i], &info);
+            }
+                
         }
-    }
+        if ( tcsetattr( 0 , TCSANOW, &info ) == -1 ) {
+            perror( "cannot get params about stdin");
+            exit(2);
+        }
+}
     return 0;
 }
 
@@ -243,13 +250,14 @@ void printCntrlChars(cc_t *val, struct charinfo chars[])
     printf("\n");
 }
 
-void enableAttr(char *attr, struct termios stty_info)
+void enableAttr(char *attr, struct termios *stty_info)
 {
     int found = 0;
     for (int i = 0; control_chars[i].name; i++) {
         if (strcmp(attr, control_chars[i].name) == 0) {
             found = 1;
             printf("found %s in control_chars\n", attr);
+            // stty_info.c_cc |= control_chars[i].value;
             return 0;
         }
     }
@@ -277,7 +285,7 @@ void enableAttr(char *attr, struct termios stty_info)
     for (int i = 0; local_modes[i].name; i++) {
         if (strcmp(attr, local_modes[i].name) == 0) {
             found = 1;
-            printf("found %s in local_modes\n", attr);
+            stty_info->c_lflag |= local_modes[i].value;
             return 0;
         }
     }
@@ -287,7 +295,47 @@ void enableAttr(char *attr, struct termios stty_info)
 
 }
 
-void disableAttr(char *attr, struct termios stty_info)
+void disableAttr(char *attr, struct termios *stty_info)
 {
-    printf("%s :)\n", attr);
+    char* newAttr = attr + 1;
+    int found = 0;
+    for (int i = 0; control_chars[i].name; i++) {
+        if (strcmp(newAttr, control_chars[i].name) == 0) {
+            found = 1;
+            printf("found %s in control_chars\n", newAttr);
+            // stty_info.c_cc |= control_chars[i].value;
+            return 0;
+        }
+    }
+    for (int i = 0; control_modes[i].name; i++) {
+        if (strcmp(newAttr, control_modes[i].name) == 0) {
+            found = 1;
+            printf("found %s in control_modes\n", newAttr);
+            return 0;
+        }
+    }
+    for (int i = 0; input_modes[i].name; i++) {
+        if (strcmp(newAttr, input_modes[i].name) == 0) {
+            found = 1;
+            printf("found %s in input_modes\n", newAttr);
+            return 0;
+        }
+    }
+    for (int i = 0; output_modes[i].name; i++) {
+        if (strcmp(newAttr, output_modes[i].name) == 0) {
+            found = 1;
+            printf("found %s in output_modes\n", newAttr);
+            return 0;
+        }
+    }
+    for (int i = 0; local_modes[i].name; i++) {
+        if (strcmp(newAttr, local_modes[i].name) == 0) {
+            found = 1;
+            stty_info->c_lflag &= ~local_modes[i].value;
+            return 0;
+        }
+    }
+    if (!found) {
+        printf("unkown mode: %s\n", newAttr);
+    }
 }
