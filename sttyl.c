@@ -129,10 +129,23 @@ void printInputMode(struct termios info, tcflag_t inFlag) {
     info.c_iflag & inFlag ? printf("%s ") : printf("-%s ", getName(inFlag));
 }
 
-struct charinfo { cc_t fl_value; char *fl_name };
+struct charinfo { cc_t value; char *name };
 
-struct flaginfo { tcflag_t fl_value; char	*fl_name; };
-struct flaginfo input_flags[] = {
+struct flaginfo { tcflag_t value; char	*name; };
+struct flaginfo control_modes[] = {
+    PARENB  , "parenb",
+    PARODD  , "parodd",
+    // CMSPAR , "cmspar",
+    CS8     , "cs8",
+    HUPCL   , "hupcl",
+    CSTOPB  , "cstopb",
+    CREAD   , "cread",
+    CLOCAL  , "clocal",
+    // CRTSCTS , "crtscts",
+    0       , NULL
+};
+
+struct flaginfo input_mode[] = {
     IGNBRK , "ignbrk",
     BRKINT , "brkint",
     IGNPAR , "ignpar",
@@ -143,12 +156,12 @@ struct flaginfo input_flags[] = {
     IGNCR  , "igncr",
     ICRNL  , "icrnl",
     IXON   , "ixon",
-    /* _IXANY  ,	"enable any char to restart output",	*/
+    IXANY  , "ixany",
     IXOFF  , "ixoff",
     0	   , NULL 
 };
 
-struct flaginfo output_flags[] = {
+struct flaginfo output_mode[] = {
     OPOST   , "opost",
     OLCUC   , "olcuc",
     OCRNL   , "ocrnl",
@@ -166,7 +179,7 @@ struct flaginfo output_flags[] = {
     0       , NULL
 };
 
-struct flaginfo local_flags[] = {
+struct flaginfo local_mode[] = {
     ISIG    , "isig",
     ICANON  , "icanon",
     IEXTEN  , "iexten",
