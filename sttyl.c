@@ -122,7 +122,8 @@ void showBaud(speed_t);
 void printModes(int, struct flaginfo []);
 void printCntrlChars(cc_t *, struct charinfo []);
 void printStty(struct termios info, struct winsize winfo);
-
+void enableAttr(char*, struct termios info);
+void disableAttr(char*, struct termios info);
 
 int main (int argc, char **argv)
 {
@@ -139,9 +140,9 @@ int main (int argc, char **argv)
     } else {
         for (int i; i < argc; i++) {
             if (argv[i][0] == '-')
-                printf("%s :)\n", argv[i]);
+                disableAttr(argv[i], info);
             else
-                printf("%s\n", argv[i]);
+                enableAttr(argv[i], info);
         }
     }
     return 0;
@@ -240,4 +241,53 @@ void printCntrlChars(cc_t *val, struct charinfo chars[])
         }
     }
     printf("\n");
+}
+
+void enableAttr(char *attr, struct termios stty_info)
+{
+    int found = 0;
+    for (int i = 0; control_chars[i].name; i++) {
+        if (strcmp(attr, control_chars[i].name) == 0) {
+            found = 1;
+            printf("found %s in control_chars\n", attr);
+            return 0;
+        }
+    }
+    for (int i = 0; control_modes[i].name; i++) {
+        if (strcmp(attr, control_modes[i].name) == 0) {
+            found = 1;
+            printf("found %s in control_modes\n", attr);
+            return 0;
+        }
+    }
+    for (int i = 0; input_modes[i].name; i++) {
+        if (strcmp(attr, input_modes[i].name) == 0) {
+            found = 1;
+            printf("found %s in input_modes\n", attr);
+            return 0;
+        }
+    }
+    for (int i = 0; output_modes[i].name; i++) {
+        if (strcmp(attr, output_modes[i].name) == 0) {
+            found = 1;
+            printf("found %s in output_modes\n", attr);
+            return 0;
+        }
+    }
+    for (int i = 0; local_modes[i].name; i++) {
+        if (strcmp(attr, local_modes[i].name) == 0) {
+            found = 1;
+            printf("found %s in local_modes\n", attr);
+            return 0;
+        }
+    }
+    if (!found) {
+        printf("unkown mode: %s\n", attr);
+    }
+
+}
+
+void disableAttr(char *attr, struct termios stty_info)
+{
+    printf("%s :)\n", attr);
 }
