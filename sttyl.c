@@ -170,20 +170,38 @@ int main (int argc, char **argv)
     if (argc == 1) {
         printStty(info, w);
     } else {
-        for (int i = 1; i < argc; i++) {
-           if (argv[i][0] == '-') {
-                modifyAttr(argv[i], &info, 0);
+        for (int ii = 1; ii < argc; ii++) {
+           if (argv[ii][0] == '-') {
+                modifyAttr(argv[ii], &info, 0);
                 
             } else {
-                modifyAttr(argv[i], &info, 1);
+                int foundCC = 0;
+                for (int jj = 0; control_chars[jj].name; jj++) {
+                    if (strcmp(argv[ii], control_chars[jj].name) == 0) {
+                        foundCC = 1;
+                        if ((int)argv[ii+1][0] == '^') {
+                            info.c_cc[control_chars[jj].value] = (int)argv[ii+1][1]-'@';
+                        } else if ((int)*argv[ii+1] >= 0 && (int)*argv[ii+1] < 32) {
+                            info.c_cc[control_chars[jj].value] = (int)*argv[ii+1];
+                        } else if ((int)*argv[ii+1] > 47 && (int)*argv[ii+1] < 58) {
+                            info.c_cc[control_chars[jj].value] = (int)*argv[ii+1]-'0';
+                        } else {
+                            info.c_cc[control_chars[jj].value] = (int)*argv[ii+1];
+                        }
+                        printf("%d\n", (int)*argv[ii+1]);
+                        ii++;
+                    }
+                }
+                if (!foundCC){
+                    modifyAttr(argv[ii], &info, 1);
+                }
             }
-                
         }
         if ( tcsetattr( 0 , TCSANOW, &info ) == -1 ) {
             perror( "cannot get params about stdin");
             exit(2);
         }
-}
+    }
     return 0;
 }
 
@@ -260,8 +278,8 @@ void printCntrlChars(cc_t *val, struct charinfo chars[])
         else if (val[chars[i].value] < 32) {
             printf("%s = ^%c; ", chars[i].name, (char)val[chars[i].value]+'@');
         } 
-        else if (val[chars[i].value] > 32 && val[chars[i].value] < 255) {
-            printf("%s = ^?; ", chars[i].name);
+        else if (val[chars[i].value] >= 32 && val[chars[i].value] < 255) {
+            printf("%s = %c; ", chars[i].name, (char)val[chars[i].value]);
         } 
         else {
             printf("%s = <undef>; ", chars[i].name);
