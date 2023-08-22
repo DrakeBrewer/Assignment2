@@ -49,7 +49,7 @@ struct baudinfo baud_rates[] = {
     { B57600 , "57600"   },
     { B115200, "115200"  },
     { B230400, "230400"  },
-    { 0      , "Unknown" }
+    { 0      , NULL      }
 };
 
 struct charinfo { cc_t value; char *name; };
@@ -99,8 +99,8 @@ struct flaginfo input_modes[] = {
     {IGNCR  , "igncr" },
     {ICRNL  , "icrnl" },
     {IXON   , "ixon"  },
-    {IXANY  , "ixany" },
     {IXOFF  , "ixoff" },
+    {IXANY  , "ixany" },
     {0	   , NULL     }
 };
 
@@ -192,30 +192,18 @@ void showBaud(speed_t speed)
     Show the baud rate
 */
 {
+    int found = 0;
     printf("speed ");
-    switch (speed) {
-        case B0:      printf("0 ");       break;
-        case B50:     printf("50 ");      break;
-        case B75:     printf("75 ");      break;
-        case B110:    printf("110 ");     break;
-        case B134:    printf("134 ");     break;
-        case B150:    printf("150 ");     break;
-        case B200:    printf("200 ");     break;
-        case B300:    printf("300 ");     break;
-        case B600:    printf("600 ");     break;
-        case B1200:   printf("1200 ");    break;
-        case B1800:   printf("1800 ");    break;
-        case B2400:   printf("2400 ");    break;
-        case B4800:   printf("4800 ");    break;
-        case B9600:   printf("9600 ");    break;
-        case B19200:  printf("19200 ");   break;
-        case B38400:  printf("38400 ");   break;
-        case B57600:  printf("57600 ");   break;
-        case B115200: printf("115200 ");  break;
-        case B230400: printf("230400 ");  break;
-        default:      printf("Unknown "); break;
+    for (int ii = 0; baud_rates[ii].name; ii++) {
+        if (baud_rates[ii].value == speed) {
+            found = 1;
+            printf("%s baud; ", baud_rates[ii].name);
+            break;
+        }
     }
-    printf("baud; ");
+    if (!found) {
+        printf("unkown baud; ");
+    }
 }
 
 void printStty(struct termios stty_info, struct winsize w_info)
