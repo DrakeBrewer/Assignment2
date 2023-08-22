@@ -118,12 +118,21 @@ struct flaginfo local_modes[] = {
     {0	   , NULL       }
 };
 
+struct flaginfo *flag_arrays[] = {
+    control_modes,
+    input_modes,
+    output_modes,
+    local_modes,
+    NULL // End marker
+};
+
 void showBaud(speed_t);
 void printModes(int, struct flaginfo []);
 void printCntrlChars(cc_t *, struct charinfo []);
 void printStty(struct termios info, struct winsize winfo);
 void enableAttr(char*, struct termios *info);
 void disableAttr(char*, struct termios *info);
+void modifyAttr(char*, struct termios *info, int);
 
 int main (int argc, char **argv)
 {
@@ -140,10 +149,10 @@ int main (int argc, char **argv)
     } else {
         for (int i = 1; i < argc; i++) {
            if (argv[i][0] == '-') {
-                disableAttr(argv[i], &info);
+                modifyAttr(argv[i], &info, 0);
                 
             } else {
-                enableAttr(argv[i], &info);
+                modifyAttr(argv[i], &info, 1);
             }
                 
         }
@@ -203,13 +212,13 @@ void printStty(struct termios stty_info, struct winsize w_info)
     printModes(stty_info.c_cflag, control_modes);
 
     // input modes
-    printModes(stty_info.c_cflag, input_modes);
+    printModes(stty_info.c_iflag, input_modes);
 
     // output modes
-    printModes(stty_info.c_cflag, output_modes);
+    printModes(stty_info.c_oflag, output_modes);
 
     // local modes
-    printModes(stty_info.c_cflag, local_modes);
+    printModes(stty_info.c_lflag, local_modes);
 }
 
 void printModes(int value, struct flaginfo modes[])
@@ -250,92 +259,46 @@ void printCntrlChars(cc_t *val, struct charinfo chars[])
     printf("\n");
 }
 
-void enableAttr(char *attr, struct termios *stty_info)
+void modifyAttr(char *attr, struct termios *stty_info, int enable)
 {
     int found = 0;
-    for (int i = 0; control_chars[i].name; i++) {
-        if (strcmp(attr, control_chars[i].name) == 0) {
-            found = 1;
-            printf("found %s in control_chars\n", attr);
-            // stty_info.c_cc |= control_chars[i].value;
-            return 0;
+    char *newAttr = attr + 1;
+
+    for (int ii = 0; flag_arrays[ii]; ii++) {
+        struct flaginfo *modes = flag_arrays[ii];
+        for (int jj = 0; modes[jj].name; jj++) {
+            if (enable) {
+            // Enable attribute
+                if (strcmp(attr, modes[jj].name) == 0) {
+                    found = 1;
+                    switch (jj) {
+                        case 0: stty_info->c_cflag |= modes[jj].value; break; // control modes on
+                        case 1: stty_info->c_iflag |= modes[jj].value; break; // input modes on
+                        case 2: stty_info->c_oflag |= modes[jj].value; break; // output modes on
+                        case 3: stty_info->c_lflag |= modes[jj].value; break; // local modes on
+                        default: break;
+                    }
+                }
+            } else {
+            // Disable attribute
+                if (strcmp(newAttr, modes[jj].name) == 0) {
+                    found = 1;
+                    switch (jj) {
+                        case 0: stty_info->c_cflag &= ~modes[jj].value; break; // control modes off
+                        case 1: stty_info->c_iflag &= ~modes[jj].value; break; // input modes off
+                        case 2: stty_info->c_oflag &= ~modes[jj].value; break; // output modes off
+                        case 3: stty_info->c_lflag &= ~modes[jj].value; break; // local modes off
+                        default: break;
+                    }
+                }
+            }
         }
-    }
-    for (int i = 0; control_modes[i].name; i++) {
-        if (strcmp(attr, control_modes[i].name) == 0) {
-            found = 1;
-            printf("found %s in control_modes\n", attr);
-            return 0;
-        }
-    }
-    for (int i = 0; input_modes[i].name; i++) {
-        if (strcmp(attr, input_modes[i].name) == 0) {
-            found = 1;
-            printf("found %s in input_modes\n", attr);
-            return 0;
-        }
-    }
-    for (int i = 0; output_modes[i].name; i++) {
-        if (strcmp(attr, output_modes[i].name) == 0) {
-            found = 1;
-            printf("found %s in output_modes\n", attr);
-            return 0;
-        }
-    }
-    for (int i = 0; local_modes[i].name; i++) {
-        if (strcmp(attr, local_modes[i].name) == 0) {
-            found = 1;
-            stty_info->c_lflag |= local_modes[i].value;
-            return 0;
+        if (found) {
+            break;
         }
     }
     if (!found) {
-        printf("unkown mode: %s\n", attr);
-    }
-
-}
-
-void disableAttr(char *attr, struct termios *stty_info)
-{
-    char* newAttr = attr + 1;
-    int found = 0;
-    for (int i = 0; control_chars[i].name; i++) {
-        if (strcmp(newAttr, control_chars[i].name) == 0) {
-            found = 1;
-            printf("found %s in control_chars\n", newAttr);
-            // stty_info.c_cc |= control_chars[i].value;
-            return 0;
-        }
-    }
-    for (int i = 0; control_modes[i].name; i++) {
-        if (strcmp(newAttr, control_modes[i].name) == 0) {
-            found = 1;
-            printf("found %s in control_modes\n", newAttr);
-            return 0;
-        }
-    }
-    for (int i = 0; input_modes[i].name; i++) {
-        if (strcmp(newAttr, input_modes[i].name) == 0) {
-            found = 1;
-            printf("found %s in input_modes\n", newAttr);
-            return 0;
-        }
-    }
-    for (int i = 0; output_modes[i].name; i++) {
-        if (strcmp(newAttr, output_modes[i].name) == 0) {
-            found = 1;
-            printf("found %s in output_modes\n", newAttr);
-            return 0;
-        }
-    }
-    for (int i = 0; local_modes[i].name; i++) {
-        if (strcmp(newAttr, local_modes[i].name) == 0) {
-            found = 1;
-            stty_info->c_lflag &= ~local_modes[i].value;
-            return 0;
-        }
-    }
-    if (!found) {
-        printf("unkown mode: %s\n", newAttr);
+        printf("sttyl: invalid argument \'%s\'\n", attr);
+        exit(3);
     }
 }
