@@ -28,6 +28,29 @@
         opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0
         isig icanon iexten echo echoe echok -echonl -noflsh -xcase -tostop -echoprt echoctl echoke -flusho -extproc
 */
+struct baudinfo { speed_t value; char *name; };
+struct baudinfo baud_rates[] = {
+    { B0     , "0"       },
+    { B50    , "50"      },
+    { B75    , "75"      },
+    { B110   , "110"     },
+    { B134   , "134"     },
+    { B150   , "150"     },
+    { B200   , "200"     },
+    { B300   , "300"     },
+    { B600   , "600"     },
+    { B1200  , "1200"    },
+    { B1800  , "1800"    },
+    { B2400  , "2400"    },
+    { B4800  , "4800"    },
+    { B9600  , "9600"    },
+    { B19200 , "19200"   },
+    { B38400 , "38400"   },
+    { B57600 , "57600"   },
+    { B115200, "115200"  },
+    { B230400, "230400"  },
+    { 0      , "Unknown" }
+};
 
 struct charinfo { cc_t value; char *name; };
 struct charinfo control_chars[] = {
