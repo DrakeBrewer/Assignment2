@@ -170,32 +170,45 @@ int main (int argc, char **argv)
     if (argc == 1) {
         printStty(info, w);
     } else {
+        // loop through all entered arguments
         for (int ii = 1; ii < argc; ii++) {
            if (argv[ii][0] == '-') {
                 modifyAttr(argv[ii], &info, 0);
                 
             } else {
                 int foundCC = 0;
+                // check if any of the arg matches any of the control chars
                 for (int jj = 0; control_chars[jj].name; jj++) {
                     if (strcmp(argv[ii], control_chars[jj].name) == 0) {
                         foundCC = 1;
+
+                        // Check if user manually entered control char
                         if ((int)argv[ii+1][0] == '^') {
                             info.c_cc[control_chars[jj].value] = (int)argv[ii+1][1]-'@';
                         }
+
+                        // check if user entered a control char
                         else if ((int)*argv[ii+1] >= 0 && (int)*argv[ii+1] < 32) {
                             info.c_cc[control_chars[jj].value] = (int)*argv[ii+1];
                         }
+
+                        // check if user entered a number
                         else if ((int)*argv[ii+1] > 47 && (int)*argv[ii+1] < 58) {
-                            info.c_cc[control_chars[jj].value] = (int)*argv[ii+1]-'0';
+                            // info.c_lflag &= ~ICANON;
+                            info.c_cc[control_chars[jj].value] = atoi(argv[ii+1]);
+
                         }
+
+                        // handle other entries
                         else {
                             info.c_cc[control_chars[jj].value] = (int)*argv[ii+1];
                         }
-                        printf("%d\n", (int)*argv[ii+1]);
+                        printf("%c\n", argv[ii+1]);
                         ii++;
                     }
                 }
                 if (!foundCC){
+                    // no control chars so check for attributes
                     modifyAttr(argv[ii], &info, 1);
                 }
             }
@@ -273,17 +286,16 @@ void printCntrlChars(cc_t *val, struct charinfo chars[])
     print flogs for the targeted chars and struct
 */
 {
-    // printf("%s = ^%c", chars[0].name, (char)val[chars[0].value]+64);
     for (int i = 0; chars[i].name != NULL; i++) {
-        if (val[chars[i].value] < 2) {
+        if (chars[i].value == VMIN || chars[i].value == VTIME) {
             printf("%s = %d; ", chars[i].name, val[chars[i].value]);
         } 
         else if (val[chars[i].value] < 32) {
-            printf("%s = ^%c; ", chars[i].name, (char)val[chars[i].value]+'@');
+            printf("%s = ^%c; ", chars[i].name, val[chars[i].value]+'@');
         } 
-        else if (val[chars[i].value] >= 32 && val[chars[i].value] < 255) {
-            printf("%s = %c; ", chars[i].name, (char)val[chars[i].value]);
-        } 
+        else if (val[chars[i].value] < 128) {
+            printf("%s = %c; ", chars[i].name, val[chars[i].value]);
+        }
         else {
             printf("%s = <undef>; ", chars[i].name);
         }
