@@ -181,11 +181,14 @@ int main (int argc, char **argv)
                         foundCC = 1;
                         if ((int)argv[ii+1][0] == '^') {
                             info.c_cc[control_chars[jj].value] = (int)argv[ii+1][1]-'@';
-                        } else if ((int)*argv[ii+1] >= 0 && (int)*argv[ii+1] < 32) {
+                        }
+                        else if ((int)*argv[ii+1] >= 0 && (int)*argv[ii+1] < 32) {
                             info.c_cc[control_chars[jj].value] = (int)*argv[ii+1];
-                        } else if ((int)*argv[ii+1] > 47 && (int)*argv[ii+1] < 58) {
+                        }
+                        else if ((int)*argv[ii+1] > 47 && (int)*argv[ii+1] < 58) {
                             info.c_cc[control_chars[jj].value] = (int)*argv[ii+1]-'0';
-                        } else {
+                        }
+                        else {
                             info.c_cc[control_chars[jj].value] = (int)*argv[ii+1];
                         }
                         printf("%d\n", (int)*argv[ii+1]);
