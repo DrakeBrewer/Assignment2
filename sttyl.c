@@ -154,7 +154,7 @@ void printModes(int, struct flaginfo []);
 void printCntrlChars(cc_t *, struct charinfo []);
 void printStty(struct termios info, struct winsize winfo);
 void modifyAttr(char*, struct termios *info, int);
-void modifyChar(char**, int);
+void modifyChar(char**, int, int, struct termios info);
 
 int main (int argc, char **argv)
 {
@@ -177,35 +177,8 @@ int main (int argc, char **argv)
             } else {
                 int foundCC = 0;
                 // check if any of the arg matches any of the control chars
-                for (int jj = 0; control_chars[jj].name; jj++) {
-                    if (strcmp(argv[ii], control_chars[jj].name) == 0) {
-                        foundCC = 1;
+                modifyChar(**argv, foundCC, ii, info);
 
-                        // Check if user manually entered control char
-                        if ((int)argv[ii+1][0] == '^') {
-                            info.c_cc[control_chars[jj].value] = (int)argv[ii+1][1]-'@';
-                        }
-
-                        // check if user entered a control char
-                        else if ((int)*argv[ii+1] >= 0 && (int)*argv[ii+1] < 32) {
-                            info.c_cc[control_chars[jj].value] = (int)*argv[ii+1];
-                        }
-
-                        // check if user entered a number
-                        else if ((int)*argv[ii+1] > 47 && (int)*argv[ii+1] < 58) {
-                            // info.c_lflag &= ~ICANON;
-                            info.c_cc[control_chars[jj].value] = atoi(argv[ii+1]);
-
-                        }
-
-                        // handle other entries
-                        else {
-                            info.c_cc[control_chars[jj].value] = (int)*argv[ii+1];
-                        }
-                        printf("%c\n", argv[ii+1]);
-                        ii++;
-                    }
-                }
                 if (!foundCC){
                     // no control chars so check for attributes
                     modifyAttr(argv[ii], &info, 1);
@@ -343,5 +316,37 @@ void modifyAttr(char *attr, struct termios *stty_info, int enable)
     if (!found) {
         printf("sttyl: invalid argument \'%s\'\n", attr);
         exit(3);
+    }
+}
+
+void modifyChar(char** arg, int foundBool, int index, struct termios stty_info) {
+    for (int jj = 0; control_chars[jj].name; jj++) {
+        if (strcmp(arg[index], control_chars[jj].name) == 0) {
+            foundBool = 1;
+
+            // Check if user manually entered control char
+            if ((int)arg[index+1][0] == '^') {
+                stty_info.c_cc[control_chars[jj].value] = (int)arg[index+1][1]-'@';
+            }
+
+            // check if user entered a control char
+            else if ((int)*arg[index+1] >= 0 && (int)*arg[index+1] < 32) {
+                stty_info.c_cc[control_chars[jj].value] = (int)*arg[index+1];
+            }
+
+            // check if user entered a number
+            else if ((int)*arg[index+1] > 47 && (int)*arg[index+1] < 58) {
+                // info.c_lflag &= ~ICANON;
+                stty_info.c_cc[control_chars[jj].value] = atoi(arg[index+1]);
+
+            }
+
+            // handle other entries
+            else {
+                stty_info.c_cc[control_chars[jj].value] = (int)*arg[index+1];
+            }
+            printf("%c\n", arg[index+1]);
+            index++;
+        }
     }
 }
