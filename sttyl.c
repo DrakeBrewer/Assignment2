@@ -153,9 +153,8 @@ void showBaud(speed_t);
 void printModes(int, struct flaginfo []);
 void printCntrlChars(cc_t *, struct charinfo []);
 void printStty(struct termios info, struct winsize winfo);
-void enableAttr(char*, struct termios *info);
-void disableAttr(char*, struct termios *info);
 void modifyAttr(char*, struct termios *info, int);
+void modifyChar(char**, int);
 
 int main (int argc, char **argv)
 {
