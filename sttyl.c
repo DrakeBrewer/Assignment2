@@ -59,9 +59,9 @@ struct charinfo control_chars[] = {
     {VERASE   , "erase"  }, // erase
     {VKILL    , "kill"   }, // kill
     {VEOF     , "eof"    },
-    {VEOL     , "eol"    },
-    {VEOL2    , "eol2"   },
-    {VSWTC    , "swtch"  },
+    // {VEOL     , "eol"    },
+    // {VEOL2    , "eol2"   },
+    // {VSWTC    , "swtch"  },
     {VSTART   , "start"  },
     {VSTOP    , "stop"   },
     {VSUSP    , "susp"   },
@@ -154,7 +154,6 @@ void printModes(int, struct flaginfo []);
 void printCntrlChars(cc_t *, struct charinfo []);
 void printStty(struct termios info, struct winsize winfo);
 void modifyAttr(char*, struct termios *info, int);
-void modifyChar(char**, int);
 
 int main (int argc, char **argv)
 {
@@ -202,7 +201,6 @@ int main (int argc, char **argv)
                         else {
                             info.c_cc[control_chars[jj].value] = (int)*argv[ii+1];
                         }
-                        printf("%c\n", argv[ii+1]);
                         ii++;
                     }
                 }
@@ -291,11 +289,11 @@ void printCntrlChars(cc_t *val, struct charinfo chars[])
         } 
         else if (val[chars[i].value] < 32) {
             printf("%s = ^%c; ", chars[i].name, val[chars[i].value]+'@');
-        } 
-        else if (val[chars[i].value] < 128) {
+        } else if (val[chars[i].value] < 127) {
             printf("%s = %c; ", chars[i].name, val[chars[i].value]);
-        }
-        else {
+        } else if (val[chars[i].value] == 127) {
+            printf("%s = ^?; ", chars[i].name, val[chars[i].value]);
+        } else {
             printf("%s = <undef>; ", chars[i].name);
         }
     }
